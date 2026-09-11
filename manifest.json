@@ -1,0 +1,9 @@
+{
+  "Name": "Hello Stardew",
+  "Author": "heptane",
+  "Version": "1.1.0",
+  "Description": "Exposes Stardew Valley calendar data (birthdays, festivals, events) over a local read-only HTTP API.",
+  "UniqueID": "heptane.HelloStardew",
+  "EntryDll": "HelloStardew.dll",
+  "MinimumApiVersion": "4.0.0"
+}

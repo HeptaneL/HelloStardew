@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "2LmwGZJT1wZKCHdz48zdbS6cmbd+leo6SmX86gDY6TQD9masrcK5ijtd9CcPQ/jEntRKAbYoN1uN3/Kc+qkZlg==",
+  "success": true,
+  "projectFilePath": "/Users/heptane/Project/StardewMods/HelloStardew/HelloStardew.csproj",
+  "expectedPackageFiles": [
+    "/Users/heptane/.nuget/packages/pathoschild.stardew.modbuildconfig/4.4.0/pathoschild.stardew.modbuildconfig.4.4.0.nupkg.sha512"
+  ],
+  "logs": []
+}
