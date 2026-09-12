@@ -64,4 +64,9 @@ internal sealed class MainThreadDispatcher
 
 		return completion.Task.GetAwaiter().GetResult();
 	}
+
+	public void Enqueue(Action action)
+	{
+		_queue.Enqueue(action);
+	}
 }
