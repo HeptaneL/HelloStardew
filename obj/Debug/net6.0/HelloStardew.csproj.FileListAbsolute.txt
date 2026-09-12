@@ -1,8 +1,0 @@
-/Users/heptane/Project/StardewMods/HelloStardew/bin/Debug/net6.0/HelloStardew.deps.json
-/Users/heptane/Project/StardewMods/HelloStardew/bin/Debug/net6.0/HelloStardew.dll
-/Users/heptane/Project/StardewMods/HelloStardew/obj/Debug/net6.0/HelloStardew.csproj.AssemblyReference.cache
-/Users/heptane/Project/StardewMods/HelloStardew/obj/Debug/net6.0/HelloStardew.GeneratedMSBuildEditorConfig.editorconfig
-/Users/heptane/Project/StardewMods/HelloStardew/obj/Debug/net6.0/HelloStardew.AssemblyInfoInputs.cache
-/Users/heptane/Project/StardewMods/HelloStardew/obj/Debug/net6.0/HelloStardew.AssemblyInfo.cs
-/Users/heptane/Project/StardewMods/HelloStardew/obj/Debug/net6.0/HelloStardew.csproj.CoreCompileInputs.cache
-/Users/heptane/Project/StardewMods/HelloStardew/obj/Debug/net6.0/HelloStardew.dll
