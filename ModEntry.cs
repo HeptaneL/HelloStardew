@@ -1,11 +1,11 @@
-using System;
 using HelloStardew.Bridge;
-using HelloStardew.CyberJu;
+using HelloStardew.Agent;
+using HelloStardew.Spouse;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using StardewValley.Network;
 using StardewValley.Menus;
+using HarmonyLib;
 
 namespace HelloStardew;
 
@@ -13,18 +13,32 @@ internal sealed class ModEntry : Mod
 {
 	private MainThreadDispatcher _dispatcher = null!;
 	private HttpBridge _bridge = null!;
-	private CyberJuClient _cyberJuClient = null!;
+	private AgentClient _agentClient = null!;
+	internal static IMonitor? Log { get; private set; }
 
 	public override void Entry(IModHelper helper)
 	{
+		Log = this.Monitor;
 		ModConfig config = helper.ReadConfig<ModConfig>();
-
 		this._dispatcher = new MainThreadDispatcher();
 		this._bridge = new HttpBridge(this.Monitor, this._dispatcher, config.BindAddress, config.Port);
-		this._cyberJuClient = new CyberJuClient();
+		this._agentClient = new AgentClient();
+		var harmony = new Harmony(this.ModManifest.UniqueID);
+
+		harmony.Patch(
+			original: AccessTools.Constructor(
+				typeof(DialogueBox),
+				new[] { typeof(Dialogue)}
+			),
+			prefix: new HarmonyMethod(
+				typeof(SpouseDialoguePatch),
+				nameof(SpouseDialoguePatch.Prefix)
+			)
+		);
 
 		// Drain cross-thread requests on the main thread every tick.
 		helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
+		//helper.Events.Display.MenuChanged += this.OnMenuChanged;
 
 		ChatCommands.Register(
 			"cj",
@@ -65,7 +79,7 @@ internal sealed class ModEntry : Mod
 	{
 		try
 		{
-			string response = await this._cyberJuClient.ChatAsync(
+			string response = await this._agentClient.ChatAsync(
 				"CyberJu",
 				message
 			);

@@ -2,9 +2,9 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
-namespace HelloStardew.CyberJu;
+namespace HelloStardew.Agent;
 
-internal sealed class CyberJuClient
+internal sealed class AgentClient
 {
 	private readonly HttpClient _httpClient = new();
 
@@ -26,7 +26,7 @@ internal sealed class CyberJuClient
 		ChatResponse? result =
 			await response.Content.ReadFromJsonAsync<ChatResponse>();
 
-		return result?.Message ?? "CyberJu could not generate a response.";
+		return result?.Message ?? "I don't know what to say.";
 	}
 
 	private sealed class ChatRequest
