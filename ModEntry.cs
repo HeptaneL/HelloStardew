@@ -1,5 +1,5 @@
 using HelloStardew.Bridge;
-using HelloStardew.CyberJu;
+using HelloStardew.Agent;
 using HelloStardew.Spouse;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -13,7 +13,7 @@ internal sealed class ModEntry : Mod
 {
 	private MainThreadDispatcher _dispatcher = null!;
 	private HttpBridge _bridge = null!;
-	private CyberJuClient _cyberJuClient = null!;
+	private AgentClient _agentClient = null!;
 	internal static IMonitor? Log { get; private set; }
 
 	public override void Entry(IModHelper helper)
@@ -22,7 +22,7 @@ internal sealed class ModEntry : Mod
 		ModConfig config = helper.ReadConfig<ModConfig>();
 		this._dispatcher = new MainThreadDispatcher();
 		this._bridge = new HttpBridge(this.Monitor, this._dispatcher, config.BindAddress, config.Port);
-		this._cyberJuClient = new CyberJuClient();
+		this._agentClient = new AgentClient();
 		var harmony = new Harmony(this.ModManifest.UniqueID);
 
 		harmony.Patch(
@@ -79,7 +79,7 @@ internal sealed class ModEntry : Mod
 	{
 		try
 		{
-			string response = await this._cyberJuClient.ChatAsync(
+			string response = await this._agentClient.ChatAsync(
 				"CyberJu",
 				message
 			);
@@ -105,26 +105,6 @@ internal sealed class ModEntry : Mod
 				);
 			});
 		}
-	}
-
-	private void OnMenuChanged(object? sender, MenuChangedEventArgs e)
-	{
-		if (e.NewMenu is not DialogueBox dialogueBox)
-			return;
-
-		Dialogue? dialogue = dialogueBox.characterDialogue;
-
-		if (dialogue?.speaker is not NPC Speaker)
-			return;
-
-		NPC? spouse = Game1.player.getSpouse();
-
-		if (spouse is null || dialogue?.speaker.Name != spouse.Name)
-			return;
-		this.Monitor.Log(
-			$"Spouse dialogue intercepted: {dialogue?.speaker.Name}, dialogue: {dialogue?.getCurrentDialogue()}",
-			LogLevel.Info
-		);
 	}
 
 }
