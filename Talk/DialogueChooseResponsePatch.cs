@@ -40,6 +40,7 @@ internal static class DialogueChooseResponsePatch
 
 		if (response.responseKey == SpouseTalkScript.KeyTyped)
 		{
+			// Still the same chat, so this keeps the running thread rather than starting a new one.
 			SpouseTalkSession.Instance.RequestTypedInput(speaker);
 			return false;
 		}

@@ -25,6 +25,12 @@ internal sealed class SpouseTalkSession
 	private string? _pendingMessage;
 	private ThinkingWindow? _thinking;
 
+	/// <summary>
+	/// Identifies the conversation currently under way, or null when none is. Every turn of one
+	/// chat sends the same value so the agent can recall it; the next chat mints a new one.
+	/// </summary>
+	private string? _threadId;
+
 	private SpouseTalkSession()
 	{
 	}
@@ -46,11 +52,20 @@ internal sealed class SpouseTalkSession
 	}
 
 	/// <summary>Open the reply box so the player can start (or continue) the conversation.</summary>
-	public void RequestTypedInput(NPC npc)
+	/// <param name="startNewConversation">
+	/// True when the player is walking up to the spouse to strike up a chat, which must open a new
+	/// thread. False for a later turn of the chat already under way — including "Something else",
+	/// which is a continuation even though it reopens the box.
+	/// </param>
+	public void RequestTypedInput(NPC npc, bool startNewConversation = false)
 	{
 		this._spouse = npc;
+
+		if (startNewConversation || this._threadId is null)
+			this._threadId = AgentClient.NewThreadId(npc.Name);
+
 		TextInputManager.Request(
-			$"What do you want to say to {npc.displayName}?",
+			Text.SpousePromptTitle(npc.displayName),
 			text => this.OnPlayerSpoke(npc, text)
 		);
 	}
@@ -70,6 +85,10 @@ internal sealed class SpouseTalkSession
 	{
 		this._pendingMessage = null;
 		this._spouse = null;
+
+		// Dropping the id is what ends the conversation: the next one asks for a new thread, so the
+		// agent starts it with no memory of this chat.
+		this._threadId = null;
 	}
 
 	private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
@@ -80,29 +99,33 @@ internal sealed class SpouseTalkSession
 
 		NPC? npc = this._spouse;
 		string message = this._pendingMessage;
+
+		// Copy the id now: the player can end the chat while the request is in flight, and this turn
+		// still belongs to the thread it was asked in.
+		string? threadId = this._threadId;
 		this._pendingMessage = null;
 
-		if (npc is null)
+		if (npc is null || threadId is null)
 			return;
 
-		this._thinking = new ThinkingWindow($"{npc.displayName} is thinking...");
+		this._thinking = new ThinkingWindow(Text.SpouseThinking(npc.displayName));
 		Game1.activeClickableMenu = this._thinking;
 
-		_ = this.GenerateAsync(npc, message);
+		_ = this.GenerateAsync(npc, message, threadId);
 	}
 
-	private async Task GenerateAsync(NPC npc, string message)
+	private async Task GenerateAsync(NPC npc, string message, string threadId)
 	{
 		SpouseReply reply;
 		try
 		{
-			string raw = await this._client!.ChatAsync(npc.Name, message);
+			string raw = await this._client!.ChatAsync(npc.Name, message, threadId);
 			reply = SpouseTalkScript.Parse(raw);
 		}
 		catch (Exception ex)
 		{
 			ModEntry.Log?.Log($"Spouse conversation failed: {ex.Message}", LogLevel.Error);
-			reply = new SpouseReply("Sorry, I lost my train of thought.", Array.Empty<string>());
+			reply = new SpouseReply(Text.SpouseReplyFailed, Array.Empty<string>());
 		}
 
 		ModEntry.Dispatcher.Enqueue(() => this.ShowReply(npc, reply));
@@ -115,15 +138,15 @@ internal sealed class SpouseTalkSession
 
 		this._thinking = null;
 
-		string script = SpouseTalkScript.Build(
-			reply.NpcLine,
-			reply.Suggestions,
-			ModEntry.Config.OfferTypedResponse
-		);
+		// The line comes first and the options follow it, so the box only offers them once the
+		// spouse has finished speaking; see BuildNpcLine for why the line is split up here.
+		string script = SpouseTalkScript.BuildNpcLine(reply.NpcLine)
+			+ SpouseTalkScript.BuildChoices(reply.Suggestions, ModEntry.Config.OfferTypedResponse);
 
 		// DrawDialogue pushes onto the NPC's stack and shows the top; pop it straight back off
 		// so a conversation does not accumulate on the stack turn after turn.
 		Dialogue dialogue = new(npc, null, script);
+
 		Game1.DrawDialogue(dialogue);
 		npc.CurrentDialogue.TryPop(out _);
 

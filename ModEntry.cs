@@ -16,6 +16,12 @@ internal sealed class ModEntry : Mod
 	private HttpBridge _bridge = null!;
 	private AgentClient _agentClient = null!;
 
+	/// <summary>
+	/// The thread the CyberJu chat command is on, created on first use. The agent does not recall
+	/// CyberJu yet, but the id is required by the request and one per save is what the field means.
+	/// </summary>
+	private string? _cyberJuThreadId;
+
 	internal static IMonitor? Log { get; private set; }
 	internal static IModHelper ModHelper { get; private set; } = null!;
 	internal static IManifest Manifest { get; private set; } = null!;
@@ -58,7 +64,7 @@ internal sealed class ModEntry : Mod
 		ChatCommands.Register(
 			"cj",
 			this.OnCyberJuCommand,
-			name => $"{name} [message]: talk to CyberJu."
+			name => Text.CommandCyberJu(name)
 		);
 
 		this._bridge = new HttpBridge(this.Monitor, Dispatcher, Config.BindAddress, Config.Port);
@@ -119,6 +125,9 @@ internal sealed class ModEntry : Mod
 	private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
 	{
 		Activity.OnSaveLoaded();
+
+		// A different farm is a different conversation, so the next command opens a new thread.
+		this._cyberJuThreadId = null;
 	}
 
 	private void OnDayStarted(object? sender, DayStartedEventArgs e)
@@ -137,15 +146,11 @@ internal sealed class ModEntry : Mod
 
 		if (string.IsNullOrWhiteSpace(message))
 		{
-			chat.addInfoMessage(
-				"CyberJu: I am CyberJu, the AI assistant of a Stardew Valley farm. " +
-				"My job is to help the farmer understand the current game state " +
-			   	"and decide what matters most. What would you like to talk about?"
-			);
+			chat.addInfoMessage($"CyberJu: {Text.CyberJuIntro}");
 			return;
 		}
 		chat.addInfoMessage($"{Game1.player.Name}: {message}");
-		chat.addInfoMessage("CyberJu is thinking...");
+		chat.addInfoMessage(Text.CyberJuThinking);
 
 		_ = this.HandleCyberJuCommandAsync(message);
 	}
@@ -154,9 +159,12 @@ internal sealed class ModEntry : Mod
 	{
 		try
 		{
+			string threadId = this._cyberJuThreadId ??= AgentClient.NewThreadId("CyberJu");
+
 			string response = await this._agentClient.ChatAsync(
 				"CyberJu",
-				message
+				message,
+				threadId
 			);
 
 			Dispatcher.Enqueue(() =>
@@ -176,7 +184,7 @@ internal sealed class ModEntry : Mod
 			Dispatcher.Enqueue(() =>
 			{
 				Game1.chatBox?.addInfoMessage(
-					"CyberJu: Sorry, I couldn't reach the Agent."
+					$"CyberJu: {Text.CyberJuUnreachable}"
 				);
 			});
 		}

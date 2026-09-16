@@ -26,7 +26,9 @@ internal static class SpouseCheckActionPatch
 		if (!ModEntry.ModHelper.Input.IsDown(ModEntry.Config.InitiateTypedDialogueKey))
 			return true;
 
-		SpouseTalkSession.Instance.RequestTypedInput(__instance);
+		// Clicking the spouse is the only way to begin a chat, so it always opens a new thread. That
+		// also covers walking away mid-chat: whatever was left open is abandoned here.
+		SpouseTalkSession.Instance.RequestTypedInput(__instance, startNewConversation: true);
 
 		// Suppress vanilla so the two do not both push a dialogue.
 		__result = false;
