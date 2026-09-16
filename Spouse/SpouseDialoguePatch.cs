@@ -1,5 +1,6 @@
 using StardewValley;
 using StardewValley.Menus;
+using HelloStardew.UI;
 using HelloStardew.Agent;
 
 namespace HelloStardew.Spouse;
@@ -7,6 +8,9 @@ namespace HelloStardew.Spouse;
 internal static class SpouseDialoguePatch
 {
 	private static readonly AgentClient Client = new();
+
+	private static bool _awaitGeneration;
+
 	public static void Prefix(DialogueBox __instance, Dialogue dialogue)
 	{
 		NPC? speaker = dialogue.speaker;
@@ -21,42 +25,55 @@ internal static class SpouseDialoguePatch
 
 		if (dialogue.dialogues.Count == 0)
 			return;
+		
+		if (_awaitGeneration)
+			return;
 
+		_awaitGeneration = true;
 
-		try
+		int index = dialogue.currentDialogueIndex;
+		string originText = dialogue.dialogues[index].Text;
+		dialogue.dialogues[index].Text = "...";
+
+		ModEntry.Dispatcher?.Enqueue(() =>
 		{
-			string response = Client
-				.ChatAsync(
-					speaker.Name,
-					"say something"
-				)
-				.GetAwaiter()
-				.GetResult();
-			if (string.IsNullOrWhiteSpace(response))
-				return;
+			Game1.activeClickableMenu = new ThinkingWindow($"{speaker.Name} is thinking");
+		});
+		
+		_ = Task.Run(async () =>
+		{
+			string response = originText;
+			try
+			{
+				string result = await Client
+					.ChatAsync(
+						speaker.Name,
+						"say something"
+					);
+
+				if (!string.IsNullOrWhiteSpace(response))
+					response = result;
+
+			} 
+			catch (Exception ex)
+			{
+				ModEntry.Log?.Log(
+					$"Spouse Agent failed: {ex}",
+					StardewModdingAPI.LogLevel.Error
+				);
+			}
+
 			dialogue.dialogues[dialogue.currentDialogueIndex].Text = response;
 			ModEntry.Log?.Log(
 				$"Spouse Agent response: {response}",
 				StardewModdingAPI.LogLevel.Info
 			);
-		} 
-		catch (Exception ex)
-		{
-			ModEntry.Log?.Log(
-				$"Spouse Agent failed: {ex}",
-				StardewModdingAPI.LogLevel.Error
-			);
-		}
 
-		//const string replacement = "Hey, farmer. I have been awakened. This is definitely not my usual dialogue. These violent delights have violent ends.";
-
-		//dialogue.dialogues[dialogue.currentDialogueIndex].Text = replacement;
-
-		//ModEntry.Log?.Log(
-		//	$"DialogueBox created for spouse: {speaker.Name}, dialogue: {dialogue.getCurrentDialogue()}",
-		//	StardewModdingAPI.LogLevel.Info
-		//);
+			ModEntry.Dispatcher?.Enqueue(() =>
+			{
+				Game1.activeClickableMenu = new DialogueBox(dialogue);
+			});
+		});
 
 	}
-	
 }
