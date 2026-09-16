@@ -6,17 +6,24 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using HelloStardew.Calendar;
+using HelloStardew.Player;
 using StardewModdingAPI;
 using StardewValley;
 
 namespace HelloStardew.Bridge;
 
-/// <summary>A read-only HTTP API over the calendar queries, for the agent's MCP server to call.</summary>
+/// <summary>A read-only HTTP API over the calendar and player queries, for the agent's MCP server to call.</summary>
 internal sealed class HttpBridge : IDisposable
 {
 	/*********
 	** Fields
 	*********/
+
+	/// <summary>How far either side of today <c>/events/recent</c> looks when the caller doesn't say.</summary>
+	private const int DefaultRecentEventDays = 3;
+
+	/// <summary>The most days <c>/events/recent</c> will look either side of today.</summary>
+	private const int MaxRecentEventDays = 28;
 
 	private static readonly JsonSerializerOptions JsonOptions = new()
 	{
@@ -157,6 +164,21 @@ internal sealed class HttpBridge : IDisposable
 			case "/calendar":
 				return this.WithDate(this.Invoke(() => CalendarService.GetSeasonCalendar(OptionalSeason(query))));
 
+			case "/household":
+				return ApiResponse.Success(this.Invoke(PlayerService.GetHousehold));
+
+			case "/relationship":
+				return this.WithDate(this.Invoke(() => GetRelationship(query)));
+
+			case "/state":
+				return ApiResponse.Success(this.Invoke(PlayerService.GetCurrentState));
+
+			case "/activity/recent":
+				return this.WithDate(this.Invoke(PlayerService.GetRecentActivity));
+
+			case "/events/recent":
+				return this.WithDate(this.Invoke(() => PlayerService.GetRecentEvents(GetDays(query))));
+
 			default:
 				throw new CalendarException("not_found", $"Unknown endpoint '{path}'.", status: 404);
 		}
@@ -217,6 +239,30 @@ internal sealed class HttpBridge : IDisposable
 	{
 		string? raw = query[key];
 		return raw is not null && (raw == "1" || string.Equals(raw, "true", StringComparison.OrdinalIgnoreCase));
+	}
+
+	/// <summary>
+	/// Return one villager's relationship when <c>npc</c> is given, otherwise every relationship.
+	/// The two cases therefore have different response shapes.
+	/// </summary>
+	private static object GetRelationship(NameValueCollection query)
+	{
+		string? npc = query["npc"];
+
+		return string.IsNullOrWhiteSpace(npc)
+			? PlayerService.GetRelationships()
+			: PlayerService.GetRelationship(npc);
+	}
+
+	private static int GetDays(NameValueCollection query)
+	{
+		string? raw = query["days"];
+		if (string.IsNullOrWhiteSpace(raw))
+			return DefaultRecentEventDays;
+		if (!int.TryParse(raw, out int days) || days < 0 || days > MaxRecentEventDays)
+			throw new CalendarException("invalid_days", $"Query parameter 'days' must be an integer between 0 and {MaxRecentEventDays}.");
+
+		return days;
 	}
 
 
