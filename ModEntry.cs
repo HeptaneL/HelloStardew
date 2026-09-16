@@ -164,7 +164,8 @@ internal sealed class ModEntry : Mod
 			string response = await this._agentClient.ChatAsync(
 				"CyberJu",
 				message,
-				threadId
+				threadId,
+				isSpouse: false
 			);
 
 			Dispatcher.Enqueue(() =>

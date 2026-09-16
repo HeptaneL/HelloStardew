@@ -1,4 +1,5 @@
 using HelloStardew.Agent;
+using HelloStardew.Player;
 using HelloStardew.UI;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -113,7 +114,12 @@ internal sealed class TalkSession
 		TalkReply reply;
 		try
 		{
-			string raw = await this._client!.ChatAsync(npc.Name, message, threadId);
+			string raw = await this._client!.ChatAsync(
+				npc.Name,
+				message,
+				threadId,
+				isSpouse: PlayerService.IsSpouse(npc)
+			);
 			reply = TalkScript.Parse(raw);
 		}
 		catch (Exception ex)

@@ -51,6 +51,20 @@ internal static class PlayerService
 		);
 	}
 
+	/// <summary>Get whether the given NPC is the farmer's spouse or roommate.</summary>
+	/// <remarks>
+	/// Deliberately not <see cref="EnsureSaveLoaded"/>: this answers "no" when there is no save to
+	/// ask about, which is the honest answer, rather than treating it as an error.
+	/// </remarks>
+	public static bool IsSpouse(NPC? npc)
+	{
+		if (npc is null || !Game1.hasLoadedGame || Game1.player is null)
+			return false;
+
+		NPC? spouse = Game1.player.getSpouse();
+		return spouse is not null && npc.Name == spouse.Name;
+	}
+
 	private static int GetDaysMarried(Farmer farmer, NPC? spouse)
 	{
 		if (spouse is null)
