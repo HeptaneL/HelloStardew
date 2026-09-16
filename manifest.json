@@ -1,8 +1,8 @@
 {
   "Name": "Hello Stardew",
   "Author": "heptane",
-  "Version": "1.2.0",
-  "Description": "Exposes Stardew Valley calendar data over a local read-only HTTP API, and lets you hold a typed conversation with your spouse through an AI agent.",
+  "Version": "1.3.0",
+  "Description": "Exposes Stardew Valley calendar, household, relationship, and player-activity data over a local read-only HTTP API, and lets you hold a typed conversation with your spouse through an AI agent.",
   "UniqueID": "heptane.HelloStardew",
   "EntryDll": "HelloStardew.dll",
   "MinimumApiVersion": "4.0.0",

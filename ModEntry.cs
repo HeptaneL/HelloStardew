@@ -1,5 +1,6 @@
 using HelloStardew.Bridge;
 using HelloStardew.Agent;
+using HelloStardew.Player;
 using HelloStardew.Talk;
 using HelloStardew.UI;
 using StardewModdingAPI;
@@ -19,6 +20,7 @@ internal sealed class ModEntry : Mod
 	internal static IModHelper ModHelper { get; private set; } = null!;
 	internal static IManifest Manifest { get; private set; } = null!;
 	internal static MainThreadDispatcher Dispatcher { get; private set; } = null!;
+	internal static ActivityTracker Activity { get; private set; } = null!;
 
 	/// <summary>
 	/// The live config. Settable because Generic Mod Config Menu replaces the whole object when the
@@ -34,6 +36,7 @@ internal sealed class ModEntry : Mod
 		Config = helper.ReadConfig<ModConfig>();
 
 		Dispatcher = new MainThreadDispatcher();
+		Activity = new ActivityTracker(this.Monitor);
 		this._agentClient = new AgentClient();
 		this.ApplyAgentConfig();
 
@@ -46,6 +49,11 @@ internal sealed class ModEntry : Mod
 		// Drain cross-thread requests on the main thread every tick.
 		helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
 		helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+
+		// Keep the activity log alive across loads and days.
+		helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+		helper.Events.GameLoop.DayStarted += this.OnDayStarted;
+		helper.Events.GameLoop.Saving += this.OnSaving;
 
 		ChatCommands.Register(
 			"cj",
@@ -105,6 +113,22 @@ internal sealed class ModEntry : Mod
 	private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
 	{
 		Dispatcher.Pump();
+		Activity.OnUpdateTicked();
+	}
+
+	private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
+	{
+		Activity.OnSaveLoaded();
+	}
+
+	private void OnDayStarted(object? sender, DayStartedEventArgs e)
+	{
+		Activity.OnDayStarted();
+	}
+
+	private void OnSaving(object? sender, SavingEventArgs e)
+	{
+		Activity.OnSaving();
 	}
 
 	private void OnCyberJuCommand(string[] command, ChatBox chat)
