@@ -5,19 +5,19 @@ namespace HelloStardew.Talk;
 
 /// <summary>
 /// Translates between the agent's raw text and the vanilla dialogue script that renders a
-/// spouse line together with its selectable responses.
+/// villager's line together with its selectable responses.
 /// </summary>
 /// <remarks>
 /// The script format is the vanilla one understood by <c>Dialogue.parseDialogueString</c>:
 /// <code>
-/// &lt;the line the spouse says&gt;#$r &lt;responseID&gt; &lt;friendshipChange&gt; &lt;responseKey&gt;#&lt;response text&gt;
+/// &lt;the line the villager says&gt;#$r &lt;responseID&gt; &lt;friendshipChange&gt; &lt;responseKey&gt;#&lt;response text&gt;
 /// </code>
 /// Each <c>$r</c> segment adds one selectable option and sets <c>isLastDialogueInteractive</c>,
 /// which is what makes <c>DialogueBox</c> treat the page as a question. Vanilla only matches
 /// options by <c>responseKey</c>, so every generated suggestion deliberately shares one key and
 /// is told apart by its text.
 /// </remarks>
-internal static class SpouseTalkScript
+internal static class TalkScript
 {
 	/// <summary>Marks every response key we own, so we can recognise our own option menus.</summary>
 	public const string KeyPrefix = "HSD_";
@@ -54,7 +54,7 @@ internal static class SpouseTalkScript
 	private const int PageTextWidth = 1200 - 460 - 20;
 	private const int PageTextHeight = 384 - 16;
 
-	/// <summary>Build the spouse's line, split into the pages the dialogue box will show.</summary>
+	/// <summary>Build the villager's line, split into the pages the dialogue box will show.</summary>
 	/// <remarks>
 	/// The line is broken up here instead of being left to <c>DialogueBox</c>. Left alone, a long
 	/// line is a single entry of <c>Dialogue.dialogues</c> that the box silently splits across
@@ -159,10 +159,10 @@ internal static class SpouseTalkScript
 	/// marks the spoken line, a leading '%' marks a suggested reply. A plain single-line
 	/// reply still works, it just yields no suggestions.
 	/// </summary>
-	public static SpouseReply Parse(string? raw)
+	public static TalkReply Parse(string? raw)
 	{
 		if (string.IsNullOrWhiteSpace(raw))
-			return new SpouseReply("...", Array.Empty<string>());
+			return new TalkReply("...", Array.Empty<string>());
 
 		string? npcLine = null;
 		List<string> suggestions = new();
@@ -187,7 +187,7 @@ internal static class SpouseTalkScript
 
 		if (string.IsNullOrWhiteSpace(npcLine))
 		{
-			// Nothing the spouse can say. If the agent only sent suggestions, the suggestions
+			// Nothing the villager can say. If the agent only sent suggestions, the suggestions
 			// still make sense as options under a placeholder line.
 			npcLine = suggestions.Count > 0 ? "..." : Sanitize(raw);
 		}
@@ -195,7 +195,7 @@ internal static class SpouseTalkScript
 		if (npcLine.Length == 0)
 			npcLine = "...";
 
-		return new SpouseReply(npcLine, suggestions);
+		return new TalkReply(npcLine, suggestions);
 	}
 
 	/// <summary>

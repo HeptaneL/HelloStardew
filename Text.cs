@@ -25,16 +25,18 @@ internal static class Text
 		return ModEntry.ModHelper.Translation.Get(key, tokens);
 	}
 
-	// --- Spouse conversation ------------------------------------------------
+	// --- Villager conversation ----------------------------------------------
+	// The keys keep their original "spouse." names: they are what an existing
+	// translation file is already keyed by, and the wording works for any villager.
 
 	/// <summary>The title of the reply box. Tokens: <c>npc</c>.</summary>
-	public static string SpousePromptTitle(string npc) => Get("spouse.prompt.title", new { npc });
+	public static string TalkPromptTitle(string npc) => Get("spouse.prompt.title", new { npc });
 
 	/// <summary>What the waiting window says. Tokens: <c>npc</c>.</summary>
-	public static string SpouseThinking(string npc) => Get("spouse.prompt.thinking", new { npc });
+	public static string TalkThinking(string npc) => Get("spouse.prompt.thinking", new { npc });
 
 	/// <summary>Shown in place of a reply when the agent could not be reached.</summary>
-	public static string SpouseReplyFailed => Get("spouse.reply.failed");
+	public static string TalkReplyFailed => Get("spouse.reply.failed");
 
 	// --- Dialogue options ---------------------------------------------------
 
