@@ -42,8 +42,15 @@ internal sealed class HttpBridge : IDisposable
 		this._prefix = $"http://{bindAddress}:{port}/";
 	}
 
-	/// <summary>Start listening. Safe to call before the game is fully loaded.</summary>
-	public void Start()
+	/// <summary>The URL prefix this bridge listens on.</summary>
+	public string Prefix => this._prefix;
+
+	/// <summary>
+	/// Start listening. Safe to call before the game is fully loaded.
+	/// Returns false if the address or port could not be bound, so the caller can keep a working
+	/// listener instead of replacing it with a dead one.
+	/// </summary>
+	public bool Start()
 	{
 		try
 		{
@@ -51,10 +58,13 @@ internal sealed class HttpBridge : IDisposable
 			this._listener.Start();
 			_ = Task.Run(this.ListenLoop);
 			this._monitor.Log($"Calendar HTTP API listening on {this._prefix}", LogLevel.Info);
+			return true;
 		}
 		catch (Exception ex)
 		{
 			this._monitor.Log($"Failed to start the Calendar HTTP API on {this._prefix}: {ex.Message}", LogLevel.Error);
+			this.Dispose();
+			return false;
 		}
 	}
 
@@ -168,7 +178,7 @@ internal sealed class HttpBridge : IDisposable
 		{
 			status = "ok",
 			mod = "HelloStardew",
-			version = "1.1.0",
+			version = ModEntry.Manifest.Version.ToString(),
 			saveLoaded = Game1.hasLoadedGame && Game1.player is not null
 		};
 	}
