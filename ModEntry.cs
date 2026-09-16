@@ -11,17 +11,17 @@ namespace HelloStardew;
 
 internal sealed class ModEntry : Mod
 {
-	private MainThreadDispatcher _dispatcher = null!;
 	private HttpBridge _bridge = null!;
 	private AgentClient _agentClient = null!;
 	internal static IMonitor? Log { get; private set; }
+	internal static MainThreadDispatcher Dispatcher { get; private set; } = null!;
 
 	public override void Entry(IModHelper helper)
 	{
 		Log = this.Monitor;
 		ModConfig config = helper.ReadConfig<ModConfig>();
-		this._dispatcher = new MainThreadDispatcher();
-		this._bridge = new HttpBridge(this.Monitor, this._dispatcher, config.BindAddress, config.Port);
+		Dispatcher = new MainThreadDispatcher();
+		this._bridge = new HttpBridge(this.Monitor, Dispatcher, config.BindAddress, config.Port);
 		this._agentClient = new AgentClient();
 		var harmony = new Harmony(this.ModManifest.UniqueID);
 
@@ -53,7 +53,7 @@ internal sealed class ModEntry : Mod
 
 	private void OnUpdateTicked(object? sender, UpdateTickedEventArgs e)
 	{
-		this._dispatcher.Pump();
+		Dispatcher.Pump();
 	}
 
 	private void OnCyberJuCommand(string[] command, ChatBox chat)
@@ -84,7 +84,7 @@ internal sealed class ModEntry : Mod
 				message
 			);
 
-			this._dispatcher.Enqueue(() =>
+			Dispatcher.Enqueue(() =>
 			{
 				Game1.chatBox?.addInfoMessage(
 					$"CyberJu: {response}"
@@ -98,7 +98,7 @@ internal sealed class ModEntry : Mod
 				LogLevel.Error
 			);
 
-			this._dispatcher.Enqueue(() =>
+			Dispatcher.Enqueue(() =>
 			{
 				Game1.chatBox?.addInfoMessage(
 					"CyberJu: Sorry, I couldn't reach the Agent."
