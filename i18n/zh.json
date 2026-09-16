@@ -1,0 +1,37 @@
+{
+  "spouse.prompt.title": "要对{{npc}}说什么？",
+  "spouse.prompt.thinking": "{{npc}}正在思考",
+  "spouse.reply.failed": "抱歉，我走神了。",
+
+  "dialogue.stay-silent": "*保持沉默*",
+  "dialogue.something-else": "*说点别的*",
+
+  "input.hint": "按 Enter 发送，Esc 取消。",
+
+  "cyberju.intro": "我是 CyberJu，这座星露谷农场的 AI 助手。我的职责是帮你了解当前的游戏状态，判断今天最要紧的事。你想聊点什么？",
+  "cyberju.thinking": "CyberJu 正在思考……",
+  "cyberju.unreachable": "抱歉，联系不上 Agent。",
+
+  "command.cj.description": "{{name}} [message]：和 CyberJu 对话。",
+
+  "config.section.conversation": "对话",
+  "config.enable-spouse.name": "启用配偶对话",
+  "config.enable-spouse.tooltip": "让配偶由 AI agent 生成台词，而不是走原版对话。",
+  "config.type-to-spouse.name": "打字对配偶说",
+  "config.type-to-spouse.tooltip": "按住此键并点击配偶，即可输入你想说的话。",
+  "config.offer-typed.name": "提供「说点别的」选项",
+  "config.offer-typed.tooltip": "在选项里加入「说点别的」，让你可以自己打字回复，而不只是选建议。",
+
+  "config.section.agent": "AI Agent",
+  "config.agent-endpoint.name": "Agent 地址",
+  "config.agent-endpoint.tooltip": "生成配偶台词的 agent 完整地址（含端口）。默认：http://127.0.0.1:8000/chat",
+  "config.agent-timeout.name": "Agent 超时（秒）",
+  "config.agent-timeout.tooltip": "超过这个时间就放弃等待，改显示一句兜底台词。",
+
+  "config.section.api": "日历 HTTP API",
+  "config.api-note": "关闭此菜单后，改动地址或端口会立即重新绑定 API；若新端口已被占用，则保留原有监听。",
+  "config.bind-address.name": "监听地址",
+  "config.bind-address.tooltip": "只读日历 API 的监听地址。除非清楚风险，否则保持 127.0.0.1。",
+  "config.port.name": "端口",
+  "config.port.tooltip": "只读日历 API 的监听端口。"
+}

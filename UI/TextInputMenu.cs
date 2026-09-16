@@ -89,7 +89,7 @@ internal sealed class TextInputMenu
 
 		this._box.Draw(b);
 
-		const string hint = "Press Enter to send, or Escape to cancel.";
+		string hint = Text.InputHint;
 		float hintWidth = Game1.smallFont.MeasureString(hint).X;
 		b.DrawString(
 			Game1.smallFont,

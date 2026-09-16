@@ -14,9 +14,9 @@ public class ThinkingWindow : IClickableMenu
     // Margin dimensions
     private const int Margin = 24;
     
-    public ThinkingWindow(string message = "Thinking") : base()
+    public ThinkingWindow(string message) : base()
     {
-        _message = message ?? "Thinking";
+        _message = message;
         var messageSize = Game1.dialogueFont.MeasureString(_message+"...");
         _animationFrame = 0;
         _animationTimer = 0f;

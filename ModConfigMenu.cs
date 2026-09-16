@@ -43,15 +43,15 @@ internal static class ModConfigMenu
 	{
 		menu.AddSectionTitle(
 			mod: mod.ModManifest,
-			text: () => "Conversation"
+			text: () => Text.ConfigConversationSection
 		);
 
 		menu.AddBoolOption(
 			mod: mod.ModManifest,
 			getValue: () => ModEntry.Config.EnableSpouseConversation,
 			setValue: value => ModEntry.Config.EnableSpouseConversation = value,
-			name: () => "Enable Spouse Conversation",
-			tooltip: () => "Whether your spouse answers through the AI agent instead of vanilla dialogue.",
+			name: () => Text.ConfigEnableSpouseName,
+			tooltip: () => Text.ConfigEnableSpouseTooltip,
 			fieldId: "EnableSpouseConversation"
 		);
 
@@ -59,8 +59,8 @@ internal static class ModConfigMenu
 			mod: mod.ModManifest,
 			getValue: () => ModEntry.Config.InitiateTypedDialogueKey,
 			setValue: value => ModEntry.Config.InitiateTypedDialogueKey = value,
-			name: () => "Type To Spouse",
-			tooltip: () => "Hold this key and click your spouse to write your own message.",
+			name: () => Text.ConfigTypeToSpouseName,
+			tooltip: () => Text.ConfigTypeToSpouseTooltip,
 			fieldId: "InitiateTypedDialogueKey"
 		);
 
@@ -68,8 +68,8 @@ internal static class ModConfigMenu
 			mod: mod.ModManifest,
 			getValue: () => ModEntry.Config.OfferTypedResponse,
 			setValue: value => ModEntry.Config.OfferTypedResponse = value,
-			name: () => "Offer \"Something Else\"",
-			tooltip: () => "Add a *Something else* option so you can type a reply instead of picking a suggestion.",
+			name: () => Text.ConfigOfferTypedName,
+			tooltip: () => Text.ConfigOfferTypedTooltip,
 			fieldId: "OfferTypedResponse"
 		);
 	}
@@ -78,15 +78,15 @@ internal static class ModConfigMenu
 	{
 		menu.AddSectionTitle(
 			mod: mod.ModManifest,
-			text: () => "AI Agent"
+			text: () => Text.ConfigAgentSection
 		);
 
 		menu.AddTextOption(
 			mod: mod.ModManifest,
 			getValue: () => ModEntry.Config.AgentEndpoint,
 			setValue: value => ModEntry.Config.AgentEndpoint = value,
-			name: () => "Agent URL",
-			tooltip: () => "Full URL of the agent that writes your spouse's replies, including port. Default: http://127.0.0.1:8000/chat",
+			name: () => Text.ConfigAgentEndpointName,
+			tooltip: () => Text.ConfigAgentEndpointTooltip,
 			allowedValues: null,
 			formatAllowedValue: null,
 			fieldId: "AgentEndpoint"
@@ -96,8 +96,8 @@ internal static class ModConfigMenu
 			mod: mod.ModManifest,
 			getValue: () => ModEntry.Config.AgentTimeoutSeconds,
 			setValue: value => ModEntry.Config.AgentTimeoutSeconds = value,
-			name: () => "Agent Timeout (seconds)",
-			tooltip: () => "Give up on a reply after this long and show a fallback line.",
+			name: () => Text.ConfigAgentTimeoutName,
+			tooltip: () => Text.ConfigAgentTimeoutTooltip,
 			min: 1,
 			max: 600,
 			interval: 1,
@@ -110,20 +110,20 @@ internal static class ModConfigMenu
 	{
 		menu.AddSectionTitle(
 			mod: mod.ModManifest,
-			text: () => "Calendar HTTP API"
+			text: () => Text.ConfigApiSection
 		);
 
 		menu.AddParagraph(
 			mod: mod.ModManifest,
-			text: () => "Changing the address or port rebinds the API as soon as this menu closes. If the new port is already in use the existing listener is kept."
+			text: () => Text.ConfigApiNote
 		);
 
 		menu.AddTextOption(
 			mod: mod.ModManifest,
 			getValue: () => ModEntry.Config.BindAddress,
 			setValue: value => ModEntry.Config.BindAddress = value,
-			name: () => "Bind Address",
-			tooltip: () => "Address the read-only calendar API listens on. Keep it on 127.0.0.1 unless you know what you're doing.",
+			name: () => Text.ConfigBindAddressName,
+			tooltip: () => Text.ConfigBindAddressTooltip,
 			allowedValues: null,
 			formatAllowedValue: null,
 			fieldId: "BindAddress"
@@ -133,8 +133,8 @@ internal static class ModConfigMenu
 			mod: mod.ModManifest,
 			getValue: () => ModEntry.Config.Port,
 			setValue: value => ModEntry.Config.Port = value,
-			name: () => "Port",
-			tooltip: () => "Port the read-only calendar API listens on.",
+			name: () => Text.ConfigPortName,
+			tooltip: () => Text.ConfigPortTooltip,
 			min: 1,
 			max: 65535,
 			interval: 1,

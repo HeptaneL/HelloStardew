@@ -1,0 +1,37 @@
+{
+  "spouse.prompt.title": "What do you want to say to {{npc}}?",
+  "spouse.prompt.thinking": "{{npc}} is thinking...",
+  "spouse.reply.failed": "Sorry, I lost my train of thought.",
+
+  "dialogue.stay-silent": "*Stay silent*",
+  "dialogue.something-else": "*Something else*",
+
+  "input.hint": "Press Enter to send, or Escape to cancel.",
+
+  "cyberju.intro": "I am CyberJu, the AI assistant of a Stardew Valley farm. My job is to help the farmer understand the current game state and decide what matters most. What would you like to talk about?",
+  "cyberju.thinking": "CyberJu is thinking...",
+  "cyberju.unreachable": "Sorry, I couldn't reach the Agent.",
+
+  "command.cj.description": "{{name}} [message]: talk to CyberJu.",
+
+  "config.section.conversation": "Conversation",
+  "config.enable-spouse.name": "Enable Spouse Conversation",
+  "config.enable-spouse.tooltip": "Whether your spouse answers through the AI agent instead of vanilla dialogue.",
+  "config.type-to-spouse.name": "Type To Spouse",
+  "config.type-to-spouse.tooltip": "Hold this key and click your spouse to write your own message.",
+  "config.offer-typed.name": "Offer \"Something Else\"",
+  "config.offer-typed.tooltip": "Add a *Something else* option so you can type a reply instead of picking a suggestion.",
+
+  "config.section.agent": "AI Agent",
+  "config.agent-endpoint.name": "Agent URL",
+  "config.agent-endpoint.tooltip": "Full URL of the agent that writes your spouse's replies, including port. Default: http://127.0.0.1:8000/chat",
+  "config.agent-timeout.name": "Agent Timeout (seconds)",
+  "config.agent-timeout.tooltip": "Give up on a reply after this long and show a fallback line.",
+
+  "config.section.api": "Calendar HTTP API",
+  "config.api-note": "Changing the address or port rebinds the API as soon as this menu closes. If the new port is already in use the existing listener is kept.",
+  "config.bind-address.name": "Bind Address",
+  "config.bind-address.tooltip": "Address the read-only calendar API listens on. Keep it on 127.0.0.1 unless you know what you're doing.",
+  "config.port.name": "Port",
+  "config.port.tooltip": "Port the read-only calendar API listens on."
+}

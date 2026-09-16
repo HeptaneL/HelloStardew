@@ -1,4 +1,5 @@
 using System.Text;
+using StardewValley.BellsAndWhistles;
 
 namespace HelloStardew.Talk;
 
@@ -36,16 +37,101 @@ internal static class SpouseTalkScript
 	/// </summary>
 	private const string ResponseId = KeyPrefix + "R";
 
-	private const string StaySilentText = "*Stay silent*";
-	private const string SomethingElseText = "*Something else*";
+	/// <summary>Marks a page that carries on into the next one.</summary>
+	/// <remarks>
+	/// Vanilla strips this marker before drawing and remembers it as
+	/// <c>Dialogue.isCurrentStringContinuedOnNextScreen</c>. Without it <c>DialogueBox</c> closes
+	/// the box after the page instead of showing the next one.
+	/// </remarks>
+	private const char PageBreak = '{';
 
-	/// <summary>Build the dialogue script for one turn.</summary>
-	public static string Build(string npcLine, IReadOnlyList<string> suggestions, bool offerTypedResponse)
+	/// <summary>The text area inside the box <c>DialogueBox</c> builds for an NPC dialogue.</summary>
+	/// <remarks>
+	/// That box is a fixed 1200x384, and its text stops 460px short of the right edge to leave room
+	/// for the portrait. Mirrored from <c>DialogueBox.checkDialogue</c>, which is what otherwise
+	/// decides where the line breaks.
+	/// </remarks>
+	private const int PageTextWidth = 1200 - 460 - 20;
+	private const int PageTextHeight = 384 - 16;
+
+	/// <summary>Build the spouse's line, split into the pages the dialogue box will show.</summary>
+	/// <remarks>
+	/// The line is broken up here instead of being left to <c>DialogueBox</c>. Left alone, a long
+	/// line is a single entry of <c>Dialogue.dialogues</c> that the box silently splits across
+	/// several screens, and the options ride along with the first screen: <c>Dialogue</c> treats an
+	/// entry as the interactive one whenever it is the last entry, whether or not the box still has
+	/// more of it to show. Emitting one entry per page puts the options on the entry that really is
+	/// the last one.
+	/// </remarks>
+	public static string BuildNpcLine(string npcLine)
+	{
+		List<string> pages = SplitIntoPages(Sanitize(npcLine));
+		if (pages.Count == 0)
+			pages.Add("...");
+
+		StringBuilder sb = new();
+		for (int i = 0; i < pages.Count; i++)
+		{
+			if (i > 0)
+				sb.Append('#');
+			sb.Append(pages[i]);
+			if (i < pages.Count - 1)
+				sb.Append(PageBreak);
+		}
+
+		return sb.ToString();
+	}
+
+	/// <summary>Break <paramref name="text"/> into chunks that each fit on one screen.</summary>
+	private static List<string> SplitIntoPages(string text)
+	{
+		List<string> pages = new();
+		string remaining = text.Trim();
+
+		while (remaining.Length > 0)
+		{
+			string overflow = SpriteText.getSubstringBeyondHeight(remaining, PageTextWidth, PageTextHeight);
+
+			// The overflow starts at a space, so everything before that space is the page. When
+			// nothing overflows there is no split to make; when the split would land at or past the
+			// end there is no boundary to break on (a single word wider than the box), and keeping
+			// the text whole is better than looping on it.
+			int splitAt = remaining.Length - overflow.Length + 1;
+			if (overflow.Length == 0 || splitAt >= remaining.Length)
+			{
+				pages.Add(remaining);
+				break;
+			}
+
+			string page = remaining[..splitAt].Trim();
+			if (page.Length == 0)
+			{
+				pages.Add(remaining);
+				break;
+			}
+
+			pages.Add(page);
+			remaining = remaining[splitAt..].Trim();
+		}
+
+		return pages;
+	}
+
+	/// <summary>
+	/// Build the selectable replies, as a segment to append to <see cref="BuildNpcLine"/>.
+	/// </summary>
+	/// <remarks>
+	/// The leading <c>#</c> closes the last page of the line, so this must follow it and must not
+	/// be handed to a dialogue box on its own: with no page of its own to sit on, the options would
+	/// have nothing to be shown against.
+	/// </remarks>
+	public static string BuildChoices(
+		IReadOnlyList<string> suggestions,
+		bool offerTypedResponse)
 	{
 		StringBuilder sb = new();
-		sb.Append(Sanitize(npcLine));
+		AppendOption(sb, KeySilent, Text.StaySilent);
 
-		AppendOption(sb, KeySilent, StaySilentText);
 		foreach (string suggestion in suggestions)
 		{
 			string text = Sanitize(suggestion);
@@ -54,7 +140,7 @@ internal static class SpouseTalkScript
 		}
 
 		if (offerTypedResponse)
-			AppendOption(sb, KeyTyped, SomethingElseText);
+			AppendOption(sb, KeyTyped, Text.SomethingElse);
 
 		return sb.ToString();
 	}
@@ -117,6 +203,9 @@ internal static class SpouseTalkScript
 	/// '#' starts a new script segment; '$' starts an inline command such as an emotion token;
 	/// '^' and '¦' terminate a line, so anything after one would silently disappear
 	/// (see <c>Dialogue.applyGenderSwitch</c>, which <c>checkForSpecialCharacters</c> calls);
+	/// '{' and '}' are the page-continuation and mail-flag markers the parser consumes without
+	/// drawing, so text containing them would lose a page break or be cut short at the brace
+	/// (<see cref="BuildNpcLine"/> adds its own page breaks after this runs);
 	/// and line breaks would split the text into unexpected pages.
 	/// </summary>
 	/// <remarks>
@@ -130,7 +219,7 @@ internal static class SpouseTalkScript
 		StringBuilder sb = new(text.Length);
 		foreach (char c in text)
 		{
-			if (c is '#' or '$' or '^' or '¦' or '\r' or '\n')
+			if (c is '#' or '$' or '^' or '¦' or '{' or '}' or '\r' or '\n')
 				continue;
 			sb.Append(c);
 		}
