@@ -1,9 +1,15 @@
 {
   "Name": "Hello Stardew",
   "Author": "heptane",
-  "Version": "1.1.0",
-  "Description": "Exposes Stardew Valley calendar data (birthdays, festivals, events) over a local read-only HTTP API.",
+  "Version": "1.2.0",
+  "Description": "Exposes Stardew Valley calendar data over a local read-only HTTP API, and lets you hold a typed conversation with your spouse through an AI agent.",
   "UniqueID": "heptane.HelloStardew",
   "EntryDll": "HelloStardew.dll",
-  "MinimumApiVersion": "4.0.0"
+  "MinimumApiVersion": "4.0.0",
+  "Dependencies": [
+    {
+      "UniqueID": "spacechase0.GenericModConfigMenu",
+      "IsRequired": false
+    }
+  ]
 }

@@ -1,6 +1,9 @@
 # Hello Stardew
 
-一个《星露谷物语》(Stardew Valley) 的 SMAPI 模组，将游戏内的日历数据（日期、节日、生日、事件）通过一个**本地只读 HTTP API** 暴露出来，供外部工具（如 MCP server、脚本、AI agent）查询。
+一个《星露谷物语》(Stardew Valley) 的 SMAPI 模组，做两件事：
+
+1. 将游戏内的日历数据（日期、节日、生日、事件）通过一个**本地只读 HTTP API** 暴露出来，供外部工具（如 MCP server、脚本、AI agent）查询。
+2. 让你可以和配偶进行**自定义对话**：按住 `Alt` 点击配偶输入你想说的话，NPC 的回复会带上几条可选回复。
 
 - **UniqueID**: `heptane.HelloStardew`
 - **最低 SMAPI 版本**: `4.0.0`
@@ -48,7 +51,12 @@
 ```json
 {
   "BindAddress": "127.0.0.1",
-  "Port": 8788
+  "Port": 8788,
+  "EnableSpouseConversation": true,
+  "InitiateTypedDialogueKey": "LeftAlt",
+  "AgentEndpoint": "http://127.0.0.1:8000/chat",
+  "AgentTimeoutSeconds": 30,
+  "OfferTypedResponse": true
 }
 ```
 
@@ -56,8 +64,55 @@
 | --- | --- | --- | --- |
 | `BindAddress` | string | `127.0.0.1` | 监听地址。除非清楚风险，否则保持 localhost。 |
 | `Port` | int | `8788` | 监听端口。 |
+| `EnableSpouseConversation` | bool | `true` | 是否启用与配偶的 AI 对话。 |
+| `InitiateTypedDialogueKey` | string | `LeftAlt` | 按住此键点击配偶可输入自己的话。取值同 SMAPI 的 `SButton`。 |
+| `AgentEndpoint` | string | `http://127.0.0.1:8000/chat` | 生成台词的 agent 地址。 |
+| `AgentTimeoutSeconds` | int | `30` | 单次请求超时秒数。超时后会显示一句兜底台词。 |
+| `OfferTypedResponse` | bool | `true` | 选项里是否提供 `*Something else*`（自己打字）。 |
 
-修改后需重启游戏生效。
+### 游戏内修改配置
+
+安装 [Generic Mod Config Menu](https://www.nexusmods.com/stardewvalley/mods/5098)（可选依赖）后，上表所有选项都能在游戏内修改，无需手动编辑文件。
+
+- 在标题界面或游戏内按 GMCM 的快捷键打开菜单，找到 **Hello Stardew**。
+- **关闭配置菜单时改动即生效**，不需要重启游戏。
+- 改 `BindAddress` / `Port` 会重新绑定监听端口；若新端口已被占用，会保留原有监听并在 SMAPI 控制台报错。
+
+未安装 GMCM 时，手动编辑 `config.json` 后需重启游戏生效。
+
+## 与配偶对话
+
+需要先在游戏里结婚。之后：
+
+1. **按住 `Alt`（可改）点击配偶**，弹出输入框，写下你想说的话。
+2. 模组把这句发给 `AgentEndpoint`，拿到回复后当作配偶的台词显示。
+3. 同一页会列出可选项：agent 生成的建议回复、`*Stay silent*`、以及 `*Something else*`。
+4. 选任意一项会继续下一轮；选 `*Stay silent*` 结束对话。
+
+按 `Enter` 发送，`Esc` 取消。输入框支持退格、方向键、`Home` / `End` / `Delete`。
+
+### agent 返回格式
+
+要让**建议回复**出现，agent 的 `message` 字段需要按这个格式返回：
+
+```
+- I had a long day at the farm today. How was yours?
+% It was quiet without you.
+% I'm exhausted too.
+% Let's rest together.
+```
+
+- 第一个不以 `%` 开头的行作为配偶的台词（前导 `-` 会被去掉）
+- 每个 `%` 开头的行作为一条建议回复
+
+**如果 agent 只返回单行纯文本，功能不会失效**——只是没有建议回复，仍然会显示台词加 `*Stay silent*` / `*Something else*` 两个选项。
+
+### 说明
+
+- **不带历史**：每次只把当前这一句发给 agent，agent 来处理记忆和会话。
+- 对话只对配偶生效，其他村民仍走原版对话。
+- agent 不可达或超时 → 显示一句兜底台词并在 SMAPI 控制台记 Error 日志。
+- 回复文本中的 `#`、`$`、`^`、`¦` 会被过滤，因为它们在原版对话脚本里是标记字符。
 
 ## 通用约定
 
@@ -113,7 +168,7 @@ curl http://127.0.0.1:8788/health
   "data": {
     "status": "ok",
     "mod": "HelloStardew",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "saveLoaded": true
   }
 }
