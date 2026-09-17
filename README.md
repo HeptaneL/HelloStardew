@@ -8,7 +8,7 @@
    - **关系**：与每个村民的好感度、心数、婚姻状态
    - **状态快照**：时间、地点、金钱、体力、生命、天气、技能、背包
    - **近期行为**：最近 3 个游戏日做过的事（对话、送礼、钓鱼、出货、升级、消费……）
-2. 让你可以和配偶进行**自定义对话**：按住 `Alt` 点击配偶输入你想说的话，NPC 的回复会带上几条可选回复。
+2. 让你可以和村民进行**自定义对话**：按住 `Alt` 点击村民输入你想说的话，NPC 的回复会带上几条可选回复。
 
 - **UniqueID**: `heptane.HelloStardew`
 - **最低 SMAPI 版本**: `4.0.0`
@@ -20,7 +20,7 @@
 
 - [安装与运行](#安装与运行)
 - [配置](#配置)
-- [与配偶对话](#与配偶对话)
+- [与村民对话](#与村民对话)
 - [语言与本地化](#语言与本地化)
 - [通用约定](#通用约定)
 - [API 列表](#api-列表)
@@ -77,11 +77,13 @@
 | --- | --- | --- | --- |
 | `BindAddress` | string | `127.0.0.1` | 监听地址。除非清楚风险，否则保持 localhost。 |
 | `Port` | int | `8788` | 监听端口。 |
-| `EnableSpouseConversation` | bool | `true` | 是否启用与配偶的 AI 对话。 |
-| `InitiateTypedDialogueKey` | string | `LeftAlt` | 按住此键点击配偶可输入自己的话。取值同 SMAPI 的 `SButton`。 |
+| `EnableSpouseConversation` | bool | `true` | 是否启用与村民的 AI 对话（配偶包含在内）。 |
+| `InitiateTypedDialogueKey` | string | `LeftAlt` | 按住此键点击村民可输入自己的话。取值同 SMAPI 的 `SButton`。 |
 | `AgentEndpoint` | string | `http://127.0.0.1:8000/chat` | 生成台词的 agent 地址。 |
 | `AgentTimeoutSeconds` | int | `30` | 单次请求超时秒数。超时后会显示一句兜底台词。 |
 | `OfferTypedResponse` | bool | `true` | 选项里是否提供 `*Something else*`（自己打字）。 |
+
+> `EnableSpouseConversation` 是整套对话功能的开关，**覆盖所有村民**，不限于配偶。字段名沿用 "spouse" 是为了不破坏已经存在的 `config.json`（改字段名会让玩家的设置被静默重置为默认值）。
 
 ### 游戏内修改配置
 
@@ -93,16 +95,16 @@
 
 未安装 GMCM 时，手动编辑 `config.json` 后需重启游戏生效。
 
-## 与配偶对话
+## 与村民对话
 
-需要先在游戏里结婚。之后：
+配偶和普通村民走的是**同一套逻辑**：没有结婚要求，任何村民都能聊。
 
-1. **按住 `Alt`（可改）点击配偶**，弹出输入框，写下你想说的话。
-2. 模组把这句发给 `AgentEndpoint`，拿到回复后当作配偶的台词显示。
+1. **按住 `Alt`（可改）点击村民**，弹出输入框，写下你想说的话。
+2. 模组把这句发给 `AgentEndpoint`，拿到回复后当作该村民的台词显示。
 3. 台词说完**之后**，同一个对话框的最后一页列出可选项：agent 生成的建议回复、`*Stay silent*`、以及 `*Something else*`。
 4. 选任意一项会继续下一轮；选 `*Stay silent*` 结束对话。
 
-台词过长时会被拆成多页，按 `Enter` / 点击继续翻页。**可选项只出现在最后一页**，不会在配偶还没说完时就冒出来。
+台词过长时会被拆成多页，按 `Enter` / 点击继续翻页。**可选项只出现在最后一页**，不会在村民还没说完时就冒出来。
 
 按 `Enter` 发送，`Esc` 取消。输入框支持退格、方向键、`Home` / `End` / `Delete`。
 
@@ -117,19 +119,26 @@
   "thread_id": "haley-20260916143012-a1b2c3",
   "character": "Haley",
   "message": "Where should we go? I was thinking the beach.",
-  "language": "zh"
+  "language": "zh",
+  "is_spouse": true
 }
 ```
 
 `thread_id` 的生命周期：
 
-- **开始一次聊天**（按住 `Alt` 点击配偶）→ 生成一个新的 `thread_id`。
+- **开始一次聊天**（按住 `Alt` 点击村民）→ 生成一个新的 `thread_id`。
 - **同一场聊天的后续每一轮**（点建议回复、点 `*Something else*` 再输入）→ 一直复用同一个 `thread_id`。
-- **聊天结束**（选 `*Stay silent*`，或者中途走开、下次重新点击配偶）→ 丢弃这个 `thread_id`。下一次聊天会拿到全新的 id，因此不会有上一场的记忆。
+- **聊天结束**（选 `*Stay silent*`，或者中途走开、下次重新点击村民）→ 丢弃这个 `thread_id`。下一次聊天会拿到全新的 id，因此不会有上一场的记忆。
 
 id 形如 `haley-20260916143012-a1b2c3`：角色名 + 起始时间 + 随机后缀。带时间戳方便在 agent 日志里分辨，随机后缀保证同一秒内开的两场聊天也不会撞号。
 
 > `thread_id` 是**必填**字段，agent 端缺少它会返回 `422`。`CyberJu` 目前不使用记忆，模组仍然会传一个（每次读档后重新生成）。
+
+### `is_spouse` 字段
+
+`is_spouse` 表示这次说话的 NPC 是不是玩家的配偶（同居的 Krobus 也算）。agent 用它来选人格，不必先去 mod 的 HTTP API 查一次玩家状态。`CyberJu` 固定为 `false`。
+
+这是一个**判断结果，不是限制**：`character` 是哪个角色完全由 mod 侧决定，`is_spouse` 只说明这个人的身份。模组不因为它是 `false` 就换个做法。
 
 ### 语言与 language 字段
 
@@ -157,7 +166,7 @@ agent 的语言支持：
 % Let's rest together.
 ```
 
-- 第一个不以 `%` 开头的行作为配偶的台词（前导 `-` 会被去掉）
+- 第一个不以 `%` 开头的行作为村民的台词（前导 `-` 会被去掉）
 - 每个 `%` 开头的行作为一条建议回复
 
 **如果 agent 只返回单行纯文本，功能不会失效**——只是没有建议回复，仍然会显示台词加 `*Stay silent*` / `*Something else*` 两个选项。
@@ -165,7 +174,7 @@ agent 的语言支持：
 ### 说明
 
 - **不带历史**：每次只把当前这一句加上 `thread_id` 发给 agent，历史存在 agent 那边。
-- 对话只对配偶生效，其他村民仍走原版对话。
+- 对话对**所有村民**生效，不限于配偶。这次说话的是不是配偶，由模组通过请求里的 `is_spouse` 告诉 agent；agent 拿它选人格。
 - agent 不可达或超时 → 显示一句兜底台词并在 SMAPI 控制台记 Error 日志。
 - 回复文本中的 `#`、`$`、`^`、`¦`、`{`、`}` 会被过滤，因为它们在原版对话脚本里是标记字符（`{` 是翻页标记，模组自己用它来分页）。
 
@@ -185,7 +194,7 @@ i18n/
 
 | 位置 | 例子 |
 | --- | --- |
-| 配偶对话 | 输入框标题、`{{npc}} is thinking...`、`*Stay silent*`、`*Something else*` |
+| 村民对话 | 输入框标题、`{{npc}} is thinking...`、`*Stay silent*`、`*Something else*` |
 | CyberJu | `cj` 命令说明、`CyberJu is thinking...`、连不上 agent 时的兜底台词 |
 | 输入框 | `Press Enter to send, or Escape to cancel.` |
 | 配置菜单 | GMCM 里的全部分组标题、选项名与提示 |

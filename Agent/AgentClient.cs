@@ -68,14 +68,19 @@ internal sealed class AgentClient : IDisposable
 	/// The conversation this line belongs to. Reuse the id for every turn of one chat, and mint a
 	/// new one once it ends.
 	/// </param>
-	public async Task<string> ChatAsync(string character, string message, string threadId)
+	/// <param name="isSpouse">
+	/// Whether the character being spoken to is the farmer's spouse or roommate. Sent so the agent
+	/// can pick the right persona without having to ask the mod for the farmer's household first.
+	/// </param>
+	public async Task<string> ChatAsync(string character, string message, string threadId, bool isSpouse)
 	{
 		ChatRequest request = new()
 		{
 			ThreadId = threadId,
 			Character = character,
 			Message = message,
-			Language = CurrentLanguage()
+			Language = CurrentLanguage(),
+			IsSpouse = isSpouse
 		};
 
 		HttpResponseMessage response = await this._httpClient.PostAsJsonAsync(
@@ -108,6 +113,9 @@ internal sealed class AgentClient : IDisposable
 
 		[JsonPropertyName("language")]
 		public string Language { get; set; } = "";
+
+		[JsonPropertyName("is_spouse")]
+		public bool IsSpouse { get; set; }
 	}
 
 	private sealed class ChatResponse

@@ -47,7 +47,7 @@ internal sealed class ModEntry : Mod
 		this.ApplyAgentConfig();
 
 		TextInputManager.Initialize(helper);
-		SpouseTalkSession.Instance.Initialize(helper, this._agentClient);
+		TalkSession.Instance.Initialize(helper, this._agentClient);
 
 		// Picks up every [HarmonyPatch] class in this assembly.
 		new Harmony(this.ModManifest.UniqueID).PatchAll();
@@ -71,7 +71,7 @@ internal sealed class ModEntry : Mod
 		this._bridge.Start();
 
 		this.Monitor.Log($"Calendar API ready. Try: curl {this._bridge.Prefix}health", LogLevel.Info);
-		this.Monitor.Log($"Hold [{Config.InitiateTypedDialogueKey}] and click your spouse to type a reply.", LogLevel.Info);
+		this.Monitor.Log($"Hold [{Config.InitiateTypedDialogueKey}] and click a villager to type a reply.", LogLevel.Info);
 	}
 
 	private void OnGameLaunched(object? sender, GameLaunchedEventArgs e)
@@ -164,7 +164,8 @@ internal sealed class ModEntry : Mod
 			string response = await this._agentClient.ChatAsync(
 				"CyberJu",
 				message,
-				threadId
+				threadId,
+				isSpouse: false
 			);
 
 			Dispatcher.Enqueue(() =>
