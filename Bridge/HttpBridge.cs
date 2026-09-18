@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using HelloStardew.Calendar;
+using HelloStardew.Gift;
+using HelloStardew.Npc;
 using HelloStardew.Player;
 using StardewModdingAPI;
 using StardewValley;
@@ -24,6 +26,12 @@ internal sealed class HttpBridge : IDisposable
 
 	/// <summary>The most days <c>/events/recent</c> will look either side of today.</summary>
 	private const int MaxRecentEventDays = 28;
+
+	/// <summary>How many gift suggestions <c>/gift/suggest</c> returns when the caller doesn't say.</summary>
+	private const int DefaultGiftLimit = 10;
+
+	/// <summary>The most gift suggestions <c>/gift/suggest</c> will return.</summary>
+	private const int MaxGiftLimit = 50;
 
 	private static readonly JsonSerializerOptions JsonOptions = new()
 	{
@@ -170,6 +178,9 @@ internal sealed class HttpBridge : IDisposable
 			case "/relationship":
 				return this.WithDate(this.Invoke(() => GetRelationship(query)));
 
+			case "/npc/location":
+				return this.WithDate(this.Invoke(() => NpcService.GetLocation(RequireNpc(query))));
+
 			case "/state":
 				return ApiResponse.Success(this.Invoke(PlayerService.GetCurrentState));
 
@@ -178,6 +189,12 @@ internal sealed class HttpBridge : IDisposable
 
 			case "/events/recent":
 				return this.WithDate(this.Invoke(() => PlayerService.GetRecentEvents(GetDays(query))));
+
+			case "/gift/tastes":
+				return this.WithDate(this.Invoke(() => GetGiftTastes(query)));
+
+			case "/gift/suggest":
+				return this.WithDate(this.Invoke(() => GiftService.SuggestGifts(RequireNpc(query), GetLimit(query))));
 
 			default:
 				throw new CalendarException("not_found", $"Unknown endpoint '{path}'.", status: 404);
@@ -252,6 +269,39 @@ internal sealed class HttpBridge : IDisposable
 		return string.IsNullOrWhiteSpace(npc)
 			? PlayerService.GetRelationships()
 			: PlayerService.GetRelationship(npc);
+	}
+
+	/// <summary>
+	/// Return one villager's gift tastes when <c>npc</c> is given, otherwise the whole catalog.
+	/// The two cases therefore have different response shapes.
+	/// </summary>
+	private static object GetGiftTastes(NameValueCollection query)
+	{
+		string? npc = query["npc"];
+
+		return string.IsNullOrWhiteSpace(npc)
+			? GiftService.GetGiftTastes()
+			: GiftService.GetGiftTastes(npc);
+	}
+
+	private static string RequireNpc(NameValueCollection query)
+	{
+		string? npc = query["npc"];
+		if (string.IsNullOrWhiteSpace(npc))
+			throw new CalendarException("missing_npc", "Query parameter 'npc' is required.");
+
+		return npc;
+	}
+
+	private static int GetLimit(NameValueCollection query)
+	{
+		string? raw = query["limit"];
+		if (string.IsNullOrWhiteSpace(raw))
+			return DefaultGiftLimit;
+		if (!int.TryParse(raw, out int limit) || limit < 1 || limit > MaxGiftLimit)
+			throw new CalendarException("invalid_limit", $"Query parameter 'limit' must be an integer between 1 and {MaxGiftLimit}.");
+
+		return limit;
 	}
 
 	private static int GetDays(NameValueCollection query)
