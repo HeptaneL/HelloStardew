@@ -9,6 +9,7 @@ using HelloStardew.Calendar;
 using HelloStardew.Gift;
 using HelloStardew.Npc;
 using HelloStardew.Player;
+using HelloStardew.Quests;
 using StardewModdingAPI;
 using StardewValley;
 
@@ -195,6 +196,9 @@ internal sealed class HttpBridge : IDisposable
 
 			case "/gift/suggest":
 				return this.WithDate(this.Invoke(() => GiftService.SuggestGifts(RequireNpc(query), GetLimit(query))));
+
+			case "/quests/incomplete":
+				return this.WithDate(this.Invoke(QuestService.GetIncompleteQuests));
 
 			default:
 				throw new CalendarException("not_found", $"Unknown endpoint '{path}'.", status: 404);
