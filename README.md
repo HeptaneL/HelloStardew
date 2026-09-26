@@ -14,7 +14,7 @@
 
 - **UniqueID**: `heptane.HelloStardew`
 - **最低 SMAPI 版本**: `4.0.0`
-- **默认地址**: `http://127.0.0.1:8788/`
+- **默认地址**: `http://+:8788/`（本机可直接用 `http://127.0.0.1:8788/`）
 
 > 服务端只读，所有接口都通过 HTTP GET 查询。路由本身不校验 HTTP 方法，但仍应仅用 GET。
 
@@ -68,7 +68,7 @@
 
 ```json
 {
-  "BindAddress": "127.0.0.1",
+  "BindAddress": "+",
   "Port": 8788,
   "EnableSpouseConversation": true,
   "InitiateTypedDialogueKey": "LeftAlt",
@@ -80,7 +80,7 @@
 
 | 字段 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `BindAddress` | string | `127.0.0.1` | 监听地址。除非清楚风险，否则保持 localhost。 |
+| `BindAddress` | string | `+` | 监听地址。`+` 表示接受任意 Host（本机、容器均可访问）；如需仅限本机，改回 `127.0.0.1`。 |
 | `Port` | int | `8788` | 监听端口。 |
 | `EnableSpouseConversation` | bool | `true` | 是否启用与村民的 AI 对话（配偶包含在内）。 |
 | `InitiateTypedDialogueKey` | string | `LeftAlt` | 按住此键点击村民可输入自己的话。取值同 SMAPI 的 `SButton`。 |

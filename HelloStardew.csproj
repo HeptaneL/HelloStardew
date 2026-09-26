@@ -5,10 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
 	<EnableHarmony>true</EnableHarmony>
+	<Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.4.0" />
-  </ItemGroup>
+	</ItemGroup>
+
 
 </Project>

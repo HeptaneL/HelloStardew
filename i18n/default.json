@@ -31,7 +31,7 @@
   "config.section.api": "Calendar HTTP API",
   "config.api-note": "Changing the address or port rebinds the API as soon as this menu closes. If the new port is already in use the existing listener is kept.",
   "config.bind-address.name": "Bind Address",
-  "config.bind-address.tooltip": "Address the read-only calendar API listens on. Keep it on 127.0.0.1 unless you know what you're doing.",
+  "config.bind-address.tooltip": "Address the read-only calendar API listens on. The default '+' accepts any Host; set it back to 127.0.0.1 to restrict it to this machine.",
   "config.port.name": "Port",
   "config.port.tooltip": "Port the read-only calendar API listens on."
 }

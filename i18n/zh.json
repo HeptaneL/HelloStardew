@@ -31,7 +31,7 @@
   "config.section.api": "日历 HTTP API",
   "config.api-note": "关闭此菜单后，改动地址或端口会立即重新绑定 API；若新端口已被占用，则保留原有监听。",
   "config.bind-address.name": "监听地址",
-  "config.bind-address.tooltip": "只读日历 API 的监听地址。除非清楚风险，否则保持 127.0.0.1。",
+  "config.bind-address.tooltip": "只读日历 API 的监听地址。默认 + 表示接受任意 Host；如需仅限本机可改回 127.0.0.1。",
   "config.port.name": "端口",
   "config.port.tooltip": "只读日历 API 的监听端口。"
 }
